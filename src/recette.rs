@@ -1,4 +1,4 @@
-use cuisinier;
+use cuisinier::Cuisinier;
 use std::fs;
 use std::os;
 
@@ -12,6 +12,43 @@ Now you may have to:
 • run your migrations
 • chown your basedir with user you want to use"#;
 
+pub fn init(cuisinier: Cuisinier) {
+    cuisinier
+        .welcome("Initialisation")
+        .mkdir_basedir()
+        .canonicalize_basedir()
+        .init_release_dir()
+        .checkout()
+        .composer()
+        .init_env()
+        .init_storage()
+        .symlink()
+        .bye(INIT_END_TEXT);
+}
+
+pub fn deploy(cuisinier: Cuisinier) {
+    cuisinier
+        .welcome("Deployment")
+        .canonicalize_basedir()
+        .init_release_dir()
+        .checkout()
+        .copy_env()
+        .composer()
+        .switch_storage()
+        .migrate()
+        .symlink()
+        .clean_old_releases()
+        .bye("Deployment Success");
+}
+
+pub fn rollback(cuisinier: Cuisinier) {
+    cuisinier
+        .welcome("Rollback")
+        .rollback()
+        .bye("Rollback done");
+}
+
+/*
 // Initialize a Laravel app
 pub fn init(dir: &str, git: &str) {
     println!("Initialization");
@@ -123,3 +160,5 @@ pub fn rollback(dir: &str) {
     helpers::rollback_done();
     println!("Rollback done.");
 }
+
+*/

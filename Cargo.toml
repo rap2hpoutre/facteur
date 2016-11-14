@@ -1,0 +1,9 @@
+[package]
+name = "facteur"
+version = "0.1.0"
+authors = ["rap2h <raphaelht@gmail.com>"]
+
+[dependencies]
+clap = "2.14.0"
+time = "0.1.35"
+slack-hook = "0.2"
