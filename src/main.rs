@@ -46,19 +46,19 @@ fn main() {
     match matches.subcommand() {
         ("init", Some(sub_m)) => {
             recette::init(
-                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap().to_string())
+                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap())
                     .git(sub_m.value_of("GIT_REPOSITORY").unwrap())
             );
         },
         ("deploy", Some(sub_m)) => {
             recette::deploy(
-                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap().to_string())
+                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap())
                     .git(sub_m.value_of("GIT_REPOSITORY").unwrap())
             );
         },
         ("rollback", Some(sub_m)) => {
             recette::rollback(
-                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap().to_string())
+                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap())
             );
         },
         _ => {

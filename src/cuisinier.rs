@@ -4,6 +4,13 @@ use slack_hook::{Slack, PayloadBuilder};
 use time;
 use std::path::PathBuf;
 
+macro_rules! done {
+    ($v:expr) => {{
+        println!(" ...OK");
+        $v
+    }}
+}
+
 pub struct Cuisinier {
     basedir: String,
     git: Option<String>,
@@ -13,9 +20,9 @@ pub struct Cuisinier {
 
 impl Cuisinier {
 
-    pub fn new(dir: String) -> Self {
+    pub fn new(dir: &str) -> Self {
         Cuisinier {
-            basedir: dir,
+            basedir: dir.to_string(),
             git: None,
             release_dir: None,
             simulation: false
@@ -42,14 +49,12 @@ impl Cuisinier {
         Self::mkdir_or_die(&self.basedir);
         Self::mkdir_or_die(&format!("{}/releases", self.basedir));
         Self::mkdir_or_die(&format!("{}/shared", self.basedir));
-        println!(" ...OK");
-        self
+        done!(self)
     }
     pub fn init_release_dir(mut self) -> Self {
         print!("Initializing Release dir");
         self.release_dir = Some("test".to_string());
-        println!(" ...OK");
-        self
+        done!(self)
     }
     pub fn checkout(self) -> Self {
         println!("checkout");
@@ -110,7 +115,11 @@ impl Cuisinier {
     }
 
     fn abort(msg: &str) -> ! {
-        panic!("ABORTED");
+        panic!("ABORTED")
+    }
+
+    fn release_timestamp() -> String {
+        time::now().strftime("%Y%m%d%H%M%S").unwrap().to_string()
     }
 }
 
