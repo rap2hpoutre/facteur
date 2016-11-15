@@ -15,9 +15,9 @@ Now you may have to:
 pub fn init(postman: Facteur) {
     postman
         .welcome("Initialisation")
-        .mkdir_basedir()
+        .mkdir_base()
         .canonicalize_basedir()
-        .init_release_dir()
+        .mkdir_release()
         .checkout()
         .composer()
         .init_env()
@@ -30,7 +30,7 @@ pub fn deploy(postman: Facteur) {
     postman
         .welcome("Deployment")
         .canonicalize_basedir()
-        .init_release_dir()
+        .mkdir_release()
         .checkout()
         .copy_env()
         .composer()

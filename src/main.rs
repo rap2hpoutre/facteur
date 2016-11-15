@@ -27,10 +27,10 @@ fn main() {
             .short("v")
             .multiple(true)
             .help("Sets the level of verbosity"))
-        .arg(Arg::with_name("simulation")
-            .short("s")
-            .long("simulation")
-            .help("Just run a simulation"))
+        .arg(Arg::with_name("pretend")
+            .short("p")
+            .long("pretend")
+            .help("Run a simulation (don't do anything)"))
         .subcommand(SubCommand::with_name("init")
             .arg(&directory_arg)
             .arg(&git_arg)
@@ -52,7 +52,7 @@ fn main() {
 
             let postman = Facteur::new(
                 sub_m.value_of("DIRECTORY").unwrap(),
-                matches.is_present("simulation")
+                matches.is_present("pretend")
             );
 
             match sub_c {

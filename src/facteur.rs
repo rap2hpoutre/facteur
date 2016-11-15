@@ -11,21 +11,27 @@ macro_rules! done {
     }}
 }
 
+macro_rules! pretend {
+    ($v:expr) => {
+        print!(" <[Pretend] {}>", $v);
+    }
+}
+
 pub struct Facteur {
     basedir: String,
     git: Option<String>,
-    release_dir: Option<String>,
-    simulation: bool
+    ts: String,
+    pretend: bool
 }
 
 impl Facteur {
 
-    pub fn new(dir: &str, simulation: bool) -> Self {
+    pub fn new(dir: &str, pretend: bool) -> Self {
         Facteur {
             basedir: dir.to_string(),
             git: None,
-            release_dir: None,
-            simulation: simulation
+            ts: Self::ts(),
+            pretend: pretend
         }
     }
 
@@ -40,32 +46,73 @@ impl Facteur {
     }
 
     pub fn canonicalize_basedir(mut self) -> Self {
-        if !self.simulation {
+        if !self.pretend {
             self.basedir = Self::canonicalize(&self.basedir);
         }
         self
     }
 
-    pub fn mkdir_basedir(self) -> Self {
+    pub fn mkdir_base(self) -> Self {
         print!("Making basedir {}", &self.basedir);
-        if !self.simulation {
-            Self::mkdir_or_die(&self.basedir);
-            Self::mkdir_or_die(&format!("{}/releases", self.basedir));
-            Self::mkdir_or_die(&format!("{}/shared", self.basedir));
+        match self.pretend {
+            false => {
+                Self::mkdir_or_die(&self.basedir);
+                Self::mkdir_or_die(&format!("{}/releases", self.basedir));
+                Self::mkdir_or_die(&format!("{}/shared", self.basedir));
+            },
+            true => {
+                pretend!(&format!("mkdir {}", self.basedir));
+                pretend!(&format!("mkdir {}/releases", self.basedir));
+                pretend!(&format!("mkdir {}/releases", self.basedir));
+            }
         }
         done!(self)
     }
-    pub fn init_release_dir(mut self) -> Self {
+
+    pub fn mkdir_release(mut self) -> Self {
         print!("Initializing Release dir");
-        if !self.simulation {
-            // self.release_dir = "";
+        match self.pretend {
+            false => Self::mkdir_or_die(&self.release_dir()),
+            true => pretend!(format!("mkdir {}", &self.release_dir()))
         }
         done!(self)
     }
+
+    fn release_dir(&self) -> String {
+        format!("{}/releases/{}", self.basedir, &self.ts)
+    }
+
     pub fn checkout(self) -> Self {
-        println!("checkout");
+        print!("Checkout");
+        match self.pretend {
+            false => {
+                {
+                    let git = self.git.as_ref().unwrap();
+                    if !Self::clone(&self.basedir, &git) {
+                        Self::abort("Failed to clone repo");
+                    }
+                }
+
+            },
+            true => pretend!(format!("clone {:?} in {}", &self.git, &self.release_dir()))
+        }
         self
     }
+
+    fn clone(dir: &str, git: &str) -> bool {
+        let output = Command::new("git")
+            .arg("clone")
+            .arg(git)
+            .arg(dir)
+            .output()
+            .expect("Failed to clone repo");
+
+        println!("{}", String::from_utf8_lossy(&output.stdout));
+        println!("{}", String::from_utf8_lossy(&output.stderr));
+
+        output.status.success()
+    }
+
     pub fn composer(self) -> Self {
         println!("composer");
         self
@@ -124,7 +171,7 @@ impl Facteur {
         panic!("ABORTED")
     }
 
-    fn release_timestamp() -> String {
+    fn ts() -> String {
         time::now().strftime("%Y%m%d%H%M%S").unwrap().to_string()
     }
 }
