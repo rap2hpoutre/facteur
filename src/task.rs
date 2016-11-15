@@ -1,4 +1,4 @@
-use cuisinier::Cuisinier;
+use facteur::Facteur;
 use std::fs;
 use std::os;
 
@@ -12,8 +12,8 @@ Now you may have to:
 • run your migrations
 • chown your basedir with user you want to use"#;
 
-pub fn init(cuisinier: Cuisinier) {
-    cuisinier
+pub fn init(postman: Facteur) {
+    postman
         .welcome("Initialisation")
         .mkdir_basedir()
         .canonicalize_basedir()
@@ -26,8 +26,8 @@ pub fn init(cuisinier: Cuisinier) {
         .bye(INIT_END_TEXT);
 }
 
-pub fn deploy(cuisinier: Cuisinier) {
-    cuisinier
+pub fn deploy(postman: Facteur) {
+    postman
         .welcome("Deployment")
         .canonicalize_basedir()
         .init_release_dir()
@@ -41,8 +41,8 @@ pub fn deploy(cuisinier: Cuisinier) {
         .bye("Deployment Success");
 }
 
-pub fn rollback(cuisinier: Cuisinier) {
-    cuisinier
+pub fn rollback(postman: Facteur) {
+    postman
         .welcome("Rollback")
         .rollback()
         .bye("Rollback done");

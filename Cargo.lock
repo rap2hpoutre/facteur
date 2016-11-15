@@ -60,7 +60,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.38 (registry+https://github.com/rust-lang/crates.io-index)",
  "libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)",
- "libz-sys 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)",
+ "libz-sys 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)",
  "openssl-sys 0.7.17 (registry+https://github.com/rust-lang/crates.io-index)",
  "pkg-config 0.3.8 (registry+https://github.com/rust-lang/crates.io-index)",
  "winapi 0.2.8 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -129,7 +129,7 @@ dependencies = [
 
 [[package]]
 name = "libz-sys"
-version = "1.0.6"
+version = "1.0.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 dependencies = [
  "gcc 0.3.38 (registry+https://github.com/rust-lang/crates.io-index)",
@@ -468,7 +468,7 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 "checksum kernel32-sys 0.2.2 (registry+https://github.com/rust-lang/crates.io-index)" = "7507624b29483431c0ba2d82aece8ca6cdba9382bff4ddd0f7490560c056098d"
 "checksum libc 0.2.17 (registry+https://github.com/rust-lang/crates.io-index)" = "044d1360593a78f5c8e5e710beccdc24ab71d1f01bc19a29bcacdba22e8475d8"
 "checksum libressl-pnacl-sys 2.1.6 (registry+https://github.com/rust-lang/crates.io-index)" = "cbc058951ab6a3ef35ca16462d7642c4867e6403520811f28537a4e2f2db3e71"
-"checksum libz-sys 1.0.6 (registry+https://github.com/rust-lang/crates.io-index)" = "40f2df7730b5d29426c3e44ce4d088d8c5def6471c2c93ba98585b89fb201ce6"
+"checksum libz-sys 1.0.7 (registry+https://github.com/rust-lang/crates.io-index)" = "283c2d162f78c5090522e13fc809820c33181570ae40de1bea84f3864c8759f9"
 "checksum log 0.3.6 (registry+https://github.com/rust-lang/crates.io-index)" = "ab83497bf8bf4ed2a74259c1c802351fcd67a65baa86394b6ba73c36f4838054"
 "checksum matches 0.1.4 (registry+https://github.com/rust-lang/crates.io-index)" = "efd7622e3022e1a6eaa602c4cea8912254e5582c9c692e9167714182244801b1"
 "checksum num 0.1.36 (registry+https://github.com/rust-lang/crates.io-index)" = "bde7c03b09e7c6a301ee81f6ddf66d7a28ec305699e3d3b056d2fc56470e3120"

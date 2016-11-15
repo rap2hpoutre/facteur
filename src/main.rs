@@ -3,10 +3,10 @@ extern crate time;
 extern crate slack_hook;
 
 use clap::{Arg, App, SubCommand};
-use cuisinier::Cuisinier;
+use facteur::Facteur;
 
-mod recette;
-mod cuisinier;
+mod task;
+mod facteur;
 
 fn main() {
     let directory_arg = Arg::with_name("DIRECTORY")
@@ -29,6 +29,7 @@ fn main() {
             .help("Sets the level of verbosity"))
         .arg(Arg::with_name("simulation")
             .short("s")
+            .long("simulation")
             .help("Just run a simulation"))
         .subcommand(SubCommand::with_name("init")
             .arg(&directory_arg)
@@ -43,26 +44,24 @@ fn main() {
             .about("Rollback to previous release"))
         .get_matches();
 
-    match matches.subcommand() {
-        ("init", Some(sub_m)) => {
-            recette::init(
-                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap())
-                    .git(sub_m.value_of("GIT_REPOSITORY").unwrap())
+
+    let (sub_c, sub_m) = matches.subcommand();
+    match vec!["init", "deploy", "rollback"].iter().find(|&&x| x == sub_c) {
+        Some(sub_c) => {
+            let sub_m = sub_m.unwrap();
+
+            let postman = Facteur::new(
+                sub_m.value_of("DIRECTORY").unwrap(),
+                matches.is_present("simulation")
             );
+
+            match sub_c {
+                &"init" => task::init(postman.git(sub_m.value_of("GIT_REPOSITORY").unwrap())),
+                &"deploy" => task::deploy(postman.git(sub_m.value_of("GIT_REPOSITORY").unwrap())),
+                &"rollback" => task::rollback(postman),
+                _ => panic!("Impossible")
+            }
         },
-        ("deploy", Some(sub_m)) => {
-            recette::deploy(
-                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap())
-                    .git(sub_m.value_of("GIT_REPOSITORY").unwrap())
-            );
-        },
-        ("rollback", Some(sub_m)) => {
-            recette::rollback(
-                Cuisinier::new(sub_m.value_of("DIRECTORY").unwrap())
-            );
-        },
-        _ => {
-            println!("Please select a command");
-        },
+        None => println!("Please select a valid command. Use -h for help.")
     }
 }

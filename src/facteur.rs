@@ -11,21 +11,21 @@ macro_rules! done {
     }}
 }
 
-pub struct Cuisinier {
+pub struct Facteur {
     basedir: String,
     git: Option<String>,
     release_dir: Option<String>,
     simulation: bool
 }
 
-impl Cuisinier {
+impl Facteur {
 
-    pub fn new(dir: &str) -> Self {
-        Cuisinier {
+    pub fn new(dir: &str, simulation: bool) -> Self {
+        Facteur {
             basedir: dir.to_string(),
             git: None,
             release_dir: None,
-            simulation: false
+            simulation: simulation
         }
     }
 
@@ -34,26 +34,32 @@ impl Cuisinier {
         self
     }
 
-    pub fn welcome(mut self, text: &str) -> Self {
-        println!("Welcome {}", text);
+    pub fn welcome(self, text: &str) -> Self {
+        println!("{}", text);
         self
     }
 
     pub fn canonicalize_basedir(mut self) -> Self {
-        self.basedir = Self::canonicalize(&self.basedir);
+        if !self.simulation {
+            self.basedir = Self::canonicalize(&self.basedir);
+        }
         self
     }
 
-    pub fn mkdir_basedir(mut self) -> Self {
-        print!("Making basedir");
-        Self::mkdir_or_die(&self.basedir);
-        Self::mkdir_or_die(&format!("{}/releases", self.basedir));
-        Self::mkdir_or_die(&format!("{}/shared", self.basedir));
+    pub fn mkdir_basedir(self) -> Self {
+        print!("Making basedir {}", &self.basedir);
+        if !self.simulation {
+            Self::mkdir_or_die(&self.basedir);
+            Self::mkdir_or_die(&format!("{}/releases", self.basedir));
+            Self::mkdir_or_die(&format!("{}/shared", self.basedir));
+        }
         done!(self)
     }
     pub fn init_release_dir(mut self) -> Self {
         print!("Initializing Release dir");
-        self.release_dir = Some("test".to_string());
+        if !self.simulation {
+            // self.release_dir = "";
+        }
         done!(self)
     }
     pub fn checkout(self) -> Self {
