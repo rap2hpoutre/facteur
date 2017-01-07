@@ -318,109 +318,6 @@ impl Facteur {
 
 /*
 
-// Get sorted paths
-fn get_sorted_paths(dir: &str) -> Vec<fs::DirEntry>{
-    let mut paths: Vec<_> = fs::read_dir(dir).unwrap()
-        .map(|r| r.unwrap())
-        .collect();
-    paths.sort_by_key(|dir| dir.path());
-    paths
-}
-
-// Get previous release dir
-pub fn get_previous_release(dir: &str) -> String {
-    let mut paths = get_sorted_paths(&format!("{}/releases", dir));
-    paths.pop();
-    format!("{}", paths.pop().unwrap().path().display())
-}
-
-// Destroy old directories
-pub fn clean_old_releases(dir: &str) {
-    let mut paths = get_sorted_paths(&format!("{}/releases", dir));
-    for _ in 0..3 {
-        paths.pop();
-    }
-    for path in paths {
-        println!("Destroying old release: {}", path.path().display());
-        fs::remove_dir_all(path.path()).ok();
-    }
-}
-
-// Clone a git repo in a dir
-pub fn clone(dir: &str, git: &str) {
-    let output = Command::new("git")
-        .arg("clone")
-        .arg(git)
-        .arg(dir)
-        .output()
-        .expect("Failed to clone repo");
-
-    println!("{}", String::from_utf8_lossy(&output.stdout));
-    println!("{}", String::from_utf8_lossy(&output.stderr));
-
-    if !output.status.success() {
-        abort("Failed to clone repo");
-    }
-}
-
-// Generate a release timestamp
-pub fn release_timestamp() -> String {
-    return time::now().strftime("%Y%m%d%H%M%S").unwrap().to_string();
-}
-
-// Create initial dirs
-pub fn mkdirs(dir: &str) {
-    mkdir_or_die(dir);
-    mkdir_or_die(&format!("{}/releases", dir));
-    mkdir_or_die(&format!("{}/shared", dir));
-}
-
-// Create a dir or die.
-pub fn mkdir_or_die(dir: &str) {
-    fs::create_dir_all(dir)
-        .unwrap_or_else(|why| {
-            abort(&format!("Cannot create dir. {:?}", why.kind()));
-        });
-}
-
-// Install composer
-pub fn composer(dir: &str) {
-
-    let output = Command::new("composer")
-        .arg("install")
-        .arg("-d")
-        .arg(dir)
-        .arg("--no-dev")
-        .arg("--prefer-dist")
-        .output()
-        .expect("Composer installation failed");
-
-    println!("{}", String::from_utf8_lossy(&output.stdout));
-    println!("{}", String::from_utf8_lossy(&output.stderr));
-
-    if !output.status.success() {
-        abort("Composer installation failed");
-    }
-}
-
-// PHP artisan migrate
-pub fn migrate(dir_ts: &str) {
-    let output = Command::new("php")
-        .current_dir(dir_ts)
-        .arg("artisan")
-        .arg("migrate")
-        .arg("--force")
-        .output()
-        .expect("Failed to clone repo");
-
-    println!("{}", String::from_utf8_lossy(&output.stdout));
-    println!("{}", String::from_utf8_lossy(&output.stderr));
-
-    if !output.status.success() {
-        println!("Migration failed, not sure it's a real problem");
-    }
-}
-
 // Abort slack message
 pub fn abort(msg: &str) -> ! {
     slack(&format!("Deployment failed: {}", msg), ":skull_and_crossbones:");
@@ -453,13 +350,6 @@ fn slack(message: &str, emoji: &str) {
         Ok(()) => println!("msg sent."),
         Err(x) => println!("<!> Error, msg not sent: {:?}", x)
     }
-}
-
-// Canonical dir
-pub fn canonicalize(dir: &str) -> String {
-    let dir = fs::canonicalize(&PathBuf::from(dir))
-        .unwrap();
-    dir.as_os_str().to_str().unwrap().to_string()
 }
 
 */
