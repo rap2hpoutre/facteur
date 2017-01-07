@@ -68,7 +68,7 @@ impl Facteur {
         done!(self)
     }
 
-    pub fn mkdir_release(mut self) -> Self {
+    pub fn mkdir_release(self) -> Self {
         print!("Initializing Release dir");
         match self.pretend {
             false => Self::mkdir_or_die(&self.release_dir()),
@@ -150,7 +150,7 @@ impl Facteur {
         done!(self)
     }
 
-    pub fn init_storage(mut self) -> Self {
+    pub fn init_storage(self) -> Self {
         print!("Init storage");
         match self.pretend {
             false => {
@@ -171,7 +171,7 @@ impl Facteur {
         }
         done!(self)
     }
-    pub fn symlink(mut self) -> Self {
+    pub fn symlink(self) -> Self {
         print!("Symlink");
         match self.pretend {
             false => {
@@ -187,11 +187,11 @@ impl Facteur {
         done!(self)
     }
 
-    pub fn bye(mut self, text: &str) -> Self {
+    pub fn bye(self, text: &str) -> Self {
         println!("{}", text);
         done!(self)
     }
-    pub fn copy_env(mut self) -> Self {
+    pub fn copy_env(self) -> Self {
         print!("copy_env");
         match self.pretend {
             false => {
@@ -203,7 +203,7 @@ impl Facteur {
         }
         done!(self)
     }
-    pub fn switch_storage(mut self) -> Self {
+    pub fn switch_storage(self) -> Self {
         print!("Link storage dir");
         match self.pretend {
             false => {
@@ -212,7 +212,7 @@ impl Facteur {
                     format!("{}/shared/storage", &self.basedir),
                     format!("{}/storage", &self.release_dir())
                 ).unwrap_or_else(|why| {
-                    helpers::abort(&format!("Cannot create symlink. {:?}", why.kind()));
+                    Self::abort(&format!("Cannot create symlink. {:?}", why.kind()));
                 }
                 );
             },
@@ -223,7 +223,7 @@ impl Facteur {
         }
         done!(self)
     }
-    pub fn migrate(mut self) -> Self {
+    pub fn migrate(self) -> Self {
         print!("Artisan migrate");
         match self.pretend {
             false => {
@@ -248,9 +248,9 @@ impl Facteur {
         }
         done!(self)
     }
-    pub fn clean_old_releases(mut self) -> Self {
+    pub fn clean_old_releases(self) -> Self {
         print!("Delete old releases");
-        let mut paths = get_sorted_paths(&format!("{}/releases", &self.basedir));
+        let mut paths = Self::get_sorted_paths(&format!("{}/releases", &self.basedir));
         for _ in 0..3 {
             paths.pop();
         }
@@ -261,14 +261,14 @@ impl Facteur {
                     fs::remove_dir_all(path.path()).ok();
                 },
                 true => {
-                    pretend!(format!("rm -Rf {}", path.path()))
+                    pretend!(format!("rm -Rf {}", path.path().display()))
                 }
             }
         }
         done!(self)
     }
 
-    pub fn rollback(mut self) -> Self {
+    pub fn rollback(self) -> Self {
         print!("Rollback");
         let previous = &Self::get_previous_release(&self.basedir);
         fs::remove_file(format!("{}/current", &self.basedir)).ok();
@@ -294,7 +294,7 @@ impl Facteur {
     }
 
     fn abort(msg: &str) -> ! {
-        panic!("ABORTED")
+        panic!("ABORTED: {}", msg)
     }
 
     fn ts() -> String {
