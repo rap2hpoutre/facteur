@@ -1,6 +1,4 @@
 use facteur::Facteur;
-use std::fs;
-use std::os;
 
 const INIT_END_TEXT: &'static str =
 r#"Init done.
@@ -18,7 +16,7 @@ pub fn init(postman: Facteur) {
         .mkdir_base()
         .canonicalize_basedir()
         .mkdir_release()
-        .checkout()
+        .clone()
         .composer()
         .init_env()
         .init_storage()
@@ -31,7 +29,7 @@ pub fn deploy(postman: Facteur) {
         .welcome("Deployment")
         .canonicalize_basedir()
         .mkdir_release()
-        .checkout()
+        .clone()
         .copy_env()
         .composer()
         .switch_storage()

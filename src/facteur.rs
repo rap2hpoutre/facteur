@@ -1,5 +1,7 @@
 use std::process::Command;
+use std::os;
 use std::fs;
+use std::env;
 use slack_hook::{Slack, PayloadBuilder};
 use time;
 use std::path::PathBuf;
@@ -13,7 +15,7 @@ macro_rules! done {
 
 macro_rules! pretend {
     ($v:expr) => {
-        print!(" <[Pretend] {}>", $v);
+        print!(" ([Pretend] {})", $v);
     }
 }
 
@@ -25,7 +27,6 @@ pub struct Facteur {
 }
 
 impl Facteur {
-
     pub fn new(dir: &str, pretend: bool) -> Self {
         Facteur {
             basedir: dir.to_string(),
@@ -46,9 +47,7 @@ impl Facteur {
     }
 
     pub fn canonicalize_basedir(mut self) -> Self {
-        if !self.pretend {
-            self.basedir = Self::canonicalize(&self.basedir);
-        }
+        self.basedir = Self::canonicalize(&self.basedir);
         self
     }
 
@@ -63,7 +62,7 @@ impl Facteur {
             true => {
                 pretend!(&format!("mkdir {}", self.basedir));
                 pretend!(&format!("mkdir {}/releases", self.basedir));
-                pretend!(&format!("mkdir {}/releases", self.basedir));
+                pretend!(&format!("mkdir {}/shared", self.basedir));
             }
         }
         done!(self)
@@ -82,82 +81,209 @@ impl Facteur {
         format!("{}/releases/{}", self.basedir, &self.ts)
     }
 
-    pub fn checkout(self) -> Self {
+    pub fn clone(self) -> Self {
         print!("Checkout");
-        match self.pretend {
-            false => {
-                {
-                    let git = self.git.as_ref().unwrap();
-                    if !Self::clone(&self.basedir, &git) {
+        {
+            let git = self.git.as_ref().unwrap();
+
+            match self.pretend {
+                false => {
+                    let output = Command::new("git")
+                        .arg("clone")
+                        .arg(git)
+                        .arg(&self.release_dir())
+                        .output()
+                        .expect("Failed to clone repo");
+
+                    println!("{}", String::from_utf8_lossy(&output.stdout));
+                    println!("{}", String::from_utf8_lossy(&output.stderr));
+
+                    if !output.status.success() {
                         Self::abort("Failed to clone repo");
                     }
-                }
-
-            },
-            true => pretend!(format!("clone {:?} in {}", &self.git, &self.release_dir()))
+                },
+                true => pretend!(format ! ("git clone {:?} {}", git, &self.release_dir()))
+            }
         }
-        self
-    }
-
-    fn clone(dir: &str, git: &str) -> bool {
-        let output = Command::new("git")
-            .arg("clone")
-            .arg(git)
-            .arg(dir)
-            .output()
-            .expect("Failed to clone repo");
-
-        println!("{}", String::from_utf8_lossy(&output.stdout));
-        println!("{}", String::from_utf8_lossy(&output.stderr));
-
-        output.status.success()
+        done!(self)
     }
 
     pub fn composer(self) -> Self {
-        println!("composer");
-        self
+        print!("Composer install");
+        match self.pretend {
+            false => {
+                let output = Command::new("composer")
+                    .arg("install")
+                    .arg("-d")
+                    .arg(&self.release_dir())
+                    .arg("--no-dev")
+                    .arg("--prefer-dist")
+                    .output()
+                    .expect("Composer installation failed");
+
+                println!("{}", String::from_utf8_lossy(&output.stdout));
+                println!("{}", String::from_utf8_lossy(&output.stderr));
+
+                if !output.status.success() {
+                    Self::abort("Composer installation failed");
+                }
+            },
+            true => {
+                pretend!(format!("composer install -d {} --no-dev --prefer-dist", &self.release_dir()));
+            }
+        }
+        done!(self)
     }
+
     pub fn init_env(self) -> Self {
-        println!("init_env");
-        self
+        print!("Init .env file");
+        match self.pretend {
+            false => {
+                fs::copy(
+                    format!("{}/.env.example", &self.release_dir()),
+                    format!("{}/.env", &self.release_dir())).ok();
+            },
+            true => {
+                pretend!(format!("cp {}/.env.example {}/.env", &self.release_dir(), &self.release_dir()));
+            }
+        }
+        done!(self)
     }
+
     pub fn init_storage(mut self) -> Self {
-        println!("init_storage");
-        self
+        print!("Init storage");
+        match self.pretend {
+            false => {
+                fs::rename(
+                    format!("{}/storage", &self.release_dir()),
+                    format!("{}/shared/storage", &self.basedir)).ok();
+                os::unix::fs::symlink(
+                    format!("{}/shared/storage", &self.basedir),
+                    format!("{}/storage", &self.release_dir())
+                ).unwrap_or_else(|why| {
+                    Self::abort(&format!("Cannot create symlink. {:?}", why.kind()));
+                });
+            },
+            true => {
+                pretend!(format!("mv {}/storage {}/shared/storage", &self.release_dir(), &self.basedir));
+                pretend!(format!("ln -s {}/shared/storage {}/storage", &self.basedir, &self.release_dir()));
+            }
+        }
+        done!(self)
     }
     pub fn symlink(mut self) -> Self {
-        println!("symlink");
-        self
+        print!("Symlink");
+        match self.pretend {
+            false => {
+                fs::remove_file(format!("{}/current", &self.basedir)).ok();
+                os::unix::fs::symlink(&self.release_dir(), format!("{}/current", &self.basedir))
+                    .unwrap_or_else(|why| { Self::abort(&format!("Cannot create symlink. {:?}", why.kind())); });
+            },
+            true => {
+                pretend!(format!("rm -Rf {}/current", &self.basedir));
+                pretend!(format!("ln -s {} {}/current", &self.release_dir(), &self.basedir));
+            }
+        }
+        done!(self)
     }
+
     pub fn bye(mut self, text: &str) -> Self {
-        println!("text");
-        self
+        println!("{}", text);
+        done!(self)
     }
     pub fn copy_env(mut self) -> Self {
-        println!("copy_env");
-        self
+        print!("copy_env");
+        match self.pretend {
+            false => {
+                fs::copy(format!("{}/current/.env", &self.basedir), format!("{}/.env", &self.release_dir())).ok();
+            },
+            true => {
+                pretend!(format!("cp {}/current/.env {}/.env", &self.basedir, &self.release_dir()));
+            }
+        }
+        done!(self)
     }
     pub fn switch_storage(mut self) -> Self {
-        println!("switch_storage");
-        self
+        print!("Link storage dir");
+        match self.pretend {
+            false => {
+                fs::remove_dir_all(format!("{}/storage", &self.release_dir())).ok();
+                os::unix::fs::symlink(
+                    format!("{}/shared/storage", &self.basedir),
+                    format!("{}/storage", &self.release_dir())
+                ).unwrap_or_else(|why| {
+                    helpers::abort(&format!("Cannot create symlink. {:?}", why.kind()));
+                }
+                );
+            },
+            true => {
+                pretend!(format!("rm {}/storage", &self.release_dir()));
+                pretend!(format!("ln -s {}/shared/storage {}/storage", &self.basedir, &self.release_dir()));
+            }
+        }
+        done!(self)
     }
     pub fn migrate(mut self) -> Self {
-        println!("migrate");
-        self
+        print!("Artisan migrate");
+        match self.pretend {
+            false => {
+                let output = Command::new("php")
+                    .current_dir(&self.release_dir())
+                    .arg("artisan")
+                    .arg("migrate")
+                    .arg("--force")
+                    .output()
+                    .expect("Failed to migrate");
+
+                println!("{}", String::from_utf8_lossy(&output.stdout));
+                println!("{}", String::from_utf8_lossy(&output.stderr));
+
+                if !output.status.success() {
+                    Self::abort("Artisan migration failed");
+                }
+            },
+            true => {
+                pretend!(format!("php artisan migrate --force"));
+            }
+        }
+        done!(self)
     }
     pub fn clean_old_releases(mut self) -> Self {
-        println!("clean_old_releases");
-        self
+        print!("Delete old releases");
+        let mut paths = get_sorted_paths(&format!("{}/releases", &self.basedir));
+        for _ in 0..3 {
+            paths.pop();
+        }
+        for path in paths {
+            println!("Destroying old release: {}", path.path().display());
+            match self.pretend {
+                false => {
+                    fs::remove_dir_all(path.path()).ok();
+                },
+                true => {
+                    pretend!(format!("rm -Rf {}", path.path()))
+                }
+            }
+        }
+        done!(self)
     }
 
     pub fn rollback(mut self) -> Self {
-        println!("rollback");
-        self
+        print!("Rollback");
+        let previous = &Self::get_previous_release(&self.basedir);
+        fs::remove_file(format!("{}/current", &self.basedir)).ok();
+        os::unix::fs::symlink(previous, format!("{}/current", &self.basedir))
+            .unwrap_or_else(|why| {
+                Self::abort(&format!("Cannot create symlink. {:?}", why.kind()));
+            });
+        done!(self)
     }
 
     fn canonicalize(dir: &str) -> String {
-        let dir = fs::canonicalize(&PathBuf::from(&dir)).unwrap();
-        dir.as_os_str().to_str().unwrap().to_string()
+        match fs::canonicalize(&PathBuf::from(&dir)) {
+            Ok(dir) => dir.as_os_str().to_str().unwrap().to_string(),
+            Err(_) => format!("{}/{}", env::current_dir().unwrap().display(), dir)
+        }
     }
 
     fn mkdir_or_die(dir: &str) {
@@ -173,6 +299,20 @@ impl Facteur {
 
     fn ts() -> String {
         time::now().strftime("%Y%m%d%H%M%S").unwrap().to_string()
+    }
+
+    fn get_sorted_paths(dir: &str) -> Vec<fs::DirEntry> {
+        let mut paths: Vec<_> = fs::read_dir(dir).unwrap()
+            .map(|r| r.unwrap())
+            .collect();
+        paths.sort_by_key(|dir| dir.path());
+        paths
+    }
+
+    fn get_previous_release(dir: &str) -> String {
+        let mut paths = Self::get_sorted_paths(&format!("{}/releases", dir));
+        paths.pop();
+        format!("{}", paths.pop().unwrap().path().display())
     }
 }
 
