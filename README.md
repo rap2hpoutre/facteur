@@ -39,9 +39,7 @@ ARGS:
 ### Deploy
 Deploy a Laravel application (previously initialized)
     
- ```
-
-
+```
 USAGE:
     facteur deploy <DIRECTORY> <GIT_REPOSITORY>
 
@@ -68,5 +66,4 @@ FLAGS:
 
 ARGS:
     <DIRECTORY>    The directory of your web app
-    
 ```
