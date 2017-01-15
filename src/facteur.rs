@@ -2,7 +2,6 @@ use std::process::Command;
 use std::os;
 use std::fs;
 use std::env;
-use slack_hook::{Slack, PayloadBuilder};
 use time;
 use std::path::PathBuf;
 
