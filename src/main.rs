@@ -1,6 +1,5 @@
 extern crate clap;
 extern crate time;
-extern crate slack_hook;
 
 use clap::{Arg, App, SubCommand};
 use facteur::Facteur;
