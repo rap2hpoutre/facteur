@@ -117,6 +117,7 @@ impl Facteur {
                     .arg(&self.release_dir())
                     .arg("--no-dev")
                     .arg("--prefer-dist")
+                    .arg("--optimize-autoloader")
                     .output()
                     .expect("Composer installation failed");
 
